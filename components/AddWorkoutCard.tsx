@@ -26,121 +26,165 @@ export const AddWorkoutCard = ({ navigation }: AddWorkoutCardProps) => {
     navigation.navigate('AddWorkout', {
       initialWorkout: {
         title: '',
-        exercises: [[]], // Initialize with empty array for first week
+        exercises: [[]],
         completed: false,
         week: 'Week 1',
       },
     });
   };
 
-  // Dynamic styles based on theme
   const dynamicStyles = {
-    container: {
-      backgroundColor: isDarkMode ? '#1A1B1E' : '#FFFFFF',
-      shadowColor: isDarkMode ? '#000' : '#888',
+    card: {
+      backgroundColor: isDarkMode ? '#1E1E2E' : '#FFFFFF',
+      shadowColor: isDarkMode ? '#000000' : '#AAAAAA',
     },
-    title: {
+    text: {
       color: isDarkMode ? '#FFFFFF' : '#000000',
     },
-    subtitle: {
-      color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
+    subtext: {
+      color: isDarkMode ? '#AAAAAA' : '#666666',
     },
-    bulletText: {
-      color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+    iconBg: {
+      backgroundColor: isDarkMode ? '#2A2A3A' : '#F0F0F5',
     },
-    addButton: {
-      backgroundColor: isDarkMode ? '#333' : '#f0f0f0',
+    divider: {
+      backgroundColor: isDarkMode ? '#333344' : '#EEEEEE',
+    },
+    highlight: {
+      color: isDarkMode ? '#FFFFFF' : '#000000',
+    },
+    badge: {
+      backgroundColor: isDarkMode ? '#3A3A4A' : '#F0F0F5',
+    },
+    statsBox: {
+      borderColor: isDarkMode ? '#333344' : '#EEEEEE',
+      backgroundColor: isDarkMode ? '#2A2A3A' : '#F8F8FC',
     },
     plusIcon: {
       color: isDarkMode ? '#FFFFFF' : '#000000',
     },
-    bullet: {
-      color: isDarkMode ? '#777' : '#555',
-    },
   };
 
   return (
-    <View style={[styles.container, dynamicStyles.container]}>
-      <View style={styles.titleRow}>
-        <Text style={[styles.title, dynamicStyles.title]}>Add Workout</Text>
-        <Pressable
-          style={[styles.addButton, dynamicStyles.addButton]}
-          onPress={handlePress}
-          android_ripple={{ color: isDarkMode ? '#555' : '#ddd', radius: 20 }}>
-          <Plus size={24} color={isDarkMode ? '#FFFFFF' : '#000000'} />
-        </Pressable>
-      </View>
+    <Pressable
+      style={[styles.card, dynamicStyles.card]}
+      onPress={handlePress}
+      android_ripple={{ color: isDarkMode ? '#333' : '#E0E0E0', radius: 300 }}>
+      <View style={styles.contentSection}>
+        <Text style={[styles.title, dynamicStyles.text]}>Create Workout</Text>
+        <Text style={[styles.subtitle, dynamicStyles.subtext]}>
+          Design your perfect fitness routine
+        </Text>
 
-      <Text style={[styles.subtitle, dynamicStyles.subtitle]}>
-        Track your progress and reach new goals
-      </Text>
+        <View style={[styles.divider, dynamicStyles.divider]} />
 
-      <View style={styles.bulletPoints}>
-        {['Track sets & reps', 'Monitor progress', 'Analyze performance'].map((item, index) => (
-          <View key={index} style={styles.bulletRow}>
-            <Text style={[styles.bullet, dynamicStyles.bullet]}>•</Text>
-            <Text style={[styles.bulletText, dynamicStyles.bulletText]}>{item}</Text>
+        <View style={styles.infoRow}>
+          <View style={[styles.badge, dynamicStyles.badge]}>
+            <Text style={[styles.badgeText, dynamicStyles.text]}>Quick</Text>
           </View>
-        ))}
+          <Text style={[styles.infoText, dynamicStyles.subtext]}>Est. time: 5 min</Text>
+        </View>
       </View>
-    </View>
+
+      <View style={styles.rightSection}>
+        <View style={[styles.iconContainer, dynamicStyles.iconBg]}>
+          <Plus size={24} color={dynamicStyles.plusIcon.color} />
+        </View>
+      </View>
+    </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 24,
-    borderRadius: 12,
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
     marginHorizontal: 16,
     marginVertical: 10,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    borderTopWidth: 0,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+  contentSection: {
+    flex: 1,
+    marginRight: 16,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
-  },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 2,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.5,
+    marginBottom: 6,
+    letterSpacing: 0.3,
   },
   subtitle: {
-    fontSize: 16,
-    marginBottom: 20,
-    lineHeight: 22,
+    fontSize: 14,
+    fontWeight: '400',
+    lineHeight: 20,
   },
-  bulletPoints: {
-    marginTop: 8,
+  rightSection: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  bulletRow: {
+  iconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  divider: {
+    height: 1,
+    marginTop: 14,
+    marginBottom: 14,
+    width: '100%',
+  },
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  bullet: {
-    fontSize: 18,
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
     marginRight: 10,
   },
-  bulletText: {
-    fontSize: 16,
-    fontWeight: '500',
+  badgeText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  infoText: {
+    fontSize: 13,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    marginTop: 4,
+  },
+  statsBox: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginRight: 12,
+    alignItems: 'center',
+  },
+  statsValue: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  statsLabel: {
+    fontSize: 11,
+    marginTop: 3,
   },
 });

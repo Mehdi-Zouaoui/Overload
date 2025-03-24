@@ -10,7 +10,7 @@ export default function ProgressScreen() {
   const { isDarkMode } = useThemeStore();
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'chart'>('list');
-  const [comparisonMode, setComparisonMode] = useState<'last' | 'all'>('all');
+  const [comparisonMode, setComparisonMode] = useState<'last' | 'all'>('last');
 
   // Use useMemo to prevent repeated calculations that might trigger re-renders
   const workouts = useMemo(() => {
@@ -179,27 +179,6 @@ export default function ProgressScreen() {
             { borderColor: colors.border, backgroundColor: colors.card },
           ]}>
           <TouchableOpacity
-            onPress={() => setComparisonMode('all')}
-            style={[
-              styles.comparisonToggleButton,
-              comparisonMode === 'all'
-                ? [styles.selectedComparisonToggleButton, { backgroundColor: colors.accent }]
-                : [styles.unselectedComparisonToggleButton, { backgroundColor: colors.card }],
-            ]}>
-            <Text
-              style={[
-                styles.comparisonToggleText,
-                comparisonMode === 'all'
-                  ? [
-                      styles.selectedComparisonToggleText,
-                      { color: isDarkMode ? '#000000' : '#FFFFFF' },
-                    ]
-                  : [styles.unselectedComparisonToggleText, { color: colors.text }],
-              ]}>
-              All History
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
             onPress={() => setComparisonMode('last')}
             style={[
               styles.comparisonToggleButton,
@@ -218,6 +197,27 @@ export default function ProgressScreen() {
                   : [styles.unselectedComparisonToggleText, { color: colors.text }],
               ]}>
               Last Session
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setComparisonMode('all')}
+            style={[
+              styles.comparisonToggleButton,
+              comparisonMode === 'all'
+                ? [styles.selectedComparisonToggleButton, { backgroundColor: colors.accent }]
+                : [styles.unselectedComparisonToggleButton, { backgroundColor: colors.card }],
+            ]}>
+            <Text
+              style={[
+                styles.comparisonToggleText,
+                comparisonMode === 'all'
+                  ? [
+                      styles.selectedComparisonToggleText,
+                      { color: isDarkMode ? '#000000' : '#FFFFFF' },
+                    ]
+                  : [styles.unselectedComparisonToggleText, { color: colors.text }],
+              ]}>
+              All History
             </Text>
           </TouchableOpacity>
         </View>

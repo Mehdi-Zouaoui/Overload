@@ -2,6 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { AddWorkoutCard } from 'components/AddWorkoutCard';
 import { useSession } from 'context/SessionProvider';
+import { ChevronDown } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { View, ScrollView, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 
@@ -16,13 +17,23 @@ function HomeScreen({ navigation }: { navigation: any }) {
   const user = session?.user?.user_metadata;
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
 
-  // Use React Query to fetch workouts
-  const { isLoading, data: workouts = [] } = useQuery({
+  // Use React Query to fetch workouts with better error handling
+  const {
+    isLoading,
+    error,
+    data: workouts = [],
+    refetch,
+  } = useQuery({
     queryKey: ['workouts', user?.sub],
     queryFn: async () => {
-      const data = await getUserWorkouts(user?.sub);
-      setWorkouts(data);
-      return data;
+      try {
+        const data = await getUserWorkouts(user?.sub);
+        setWorkouts(data);
+        return data;
+      } catch (err) {
+        console.error('Error fetching workouts:', err);
+        throw err;
+      }
     },
     enabled: !!user?.sub,
   });
@@ -56,6 +67,21 @@ function HomeScreen({ navigation }: { navigation: any }) {
     activityIndicator: {
       color: isDarkMode ? '#FFFFFF' : '#111827',
     },
+    errorText: {
+      color: isDarkMode ? '#FF6B6B' : '#D32F2F',
+    },
+    refreshButton: {
+      backgroundColor: isDarkMode ? '#333333' : '#E0E0E0',
+    },
+    refreshButtonText: {
+      color: isDarkMode ? '#FFFFFF' : '#111827',
+    },
+    lastUpdated: {
+      color: isDarkMode ? '#999999' : '#666666',
+    },
+    scrollIndicator: {
+      backgroundColor: isDarkMode ? '#444444' : '#CCCCCC',
+    },
   };
 
   const handleAddWorkout = () => {
@@ -65,11 +91,13 @@ function HomeScreen({ navigation }: { navigation: any }) {
   // Refresh workouts when screen is focused
   useFocusEffect(
     useCallback(() => {
-      // This could be used to refresh data when returning to this screen
+      // Refresh data when returning to this screen
+      refetch();
+
       return () => {
         // Cleanup if needed
       };
-    }, [])
+    }, [refetch])
   );
 
   // Show loading state
@@ -77,12 +105,39 @@ function HomeScreen({ navigation }: { navigation: any }) {
     return (
       <View style={[styles.container, dynamicStyles.container, styles.centerContent]}>
         <ActivityIndicator size="large" color={dynamicStyles.activityIndicator.color} />
+        <Text style={[styles.loadingText, dynamicStyles.emptyText]}>Loading your workouts...</Text>
       </View>
     );
   }
 
+  // Show error state
+  if (error) {
+    return (
+      <View style={[styles.container, dynamicStyles.container, styles.centerContent]}>
+        <Text style={[styles.errorText, dynamicStyles.errorText]}>
+          Unable to load workouts. Please try again.
+        </Text>
+        <Pressable
+          style={[styles.refreshButton, dynamicStyles.refreshButton]}
+          onPress={() => refetch()}>
+          <Text style={[styles.refreshButtonText, dynamicStyles.refreshButtonText]}>Retry</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  // Get current date for display
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+
   return (
     <View style={[styles.container, dynamicStyles.container]}>
+      {/* Welcome and Date Header */}
+
       {/* Enhanced Section Header */}
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>My Workouts</Text>
@@ -96,6 +151,18 @@ function HomeScreen({ navigation }: { navigation: any }) {
 
       {/* Divider */}
       <View style={[styles.divider, dynamicStyles.divider]} />
+
+      {/* Vertical Scroll Indicator */}
+      {workouts.length > 0 && (
+        <View style={styles.scrollIndicatorContainer}>
+          <Text style={[styles.scrollHintText, dynamicStyles.emptyText]}>
+            Swipe down to see more
+          </Text>
+          <View style={styles.arrowContainer}>
+            <ChevronDown size={20} color={isDarkMode ? '#AAAAAA' : '#666666'} />
+          </View>
+        </View>
+      )}
 
       <ScrollView
         style={styles.scrollView}
@@ -115,7 +182,9 @@ function HomeScreen({ navigation }: { navigation: any }) {
                 dynamicStyles.createButton,
                 { opacity: pressed ? 0.8 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
               ]}
-              onPress={handleAddWorkout}>
+              onPress={handleAddWorkout}
+              accessibilityLabel="Create a new workout"
+              accessibilityRole="button">
               <Text style={[styles.createButtonText, dynamicStyles.createButtonText]}>
                 Create Workout
               </Text>
@@ -132,7 +201,9 @@ function HomeScreen({ navigation }: { navigation: any }) {
                       styles.workoutCardWrapper,
                       { opacity: pressed ? 0.9 : 1, transform: [{ scale: pressed ? 0.99 : 1 }] },
                     ]}
-                    onPress={() => navigation.navigate('Details', { id: workout.id })}>
+                    onPress={() => navigation.navigate('Details', { id: workout.id })}
+                    accessibilityLabel={`View ${workout.title || 'Untitled Workout'} details`}
+                    accessibilityRole="button">
                     <WorkoutCard
                       id={workout.id}
                       title={workout.title || 'Untitled Workout'}
@@ -144,6 +215,11 @@ function HomeScreen({ navigation }: { navigation: any }) {
               }
               return null;
             })}
+
+            {/* Last updated info */}
+            <Text style={[styles.lastUpdated, dynamicStyles.lastUpdated]}>
+              Last updated: {new Date().toLocaleTimeString()}
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -157,12 +233,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  welcomeHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  welcomeText: {
+    fontSize: 28,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  dateText: {
+    fontSize: 14,
+    marginBottom: 4,
+    fontWeight: '500',
+  },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 12,
     paddingBottom: 14,
   },
   sectionTitle: {
@@ -240,6 +332,42 @@ const styles = StyleSheet.create({
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+  },
+  errorText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  refreshButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  refreshButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  lastUpdated: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  scrollIndicatorContainer: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  scrollHintText: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  arrowContainer: {
+    marginBottom: 8,
   },
 });
 

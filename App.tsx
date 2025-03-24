@@ -10,7 +10,7 @@ import { supabase } from 'lib/supabase';
 import { useState, useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import './global.css';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AddWorkoutScreen from 'screens/AddWorkoutScreen';
 import ProfileScreen from 'screens/ProfileScreen';
 import ProgressScreen from 'screens/ProgressScreen';
@@ -45,50 +45,61 @@ function MainTabs() {
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: isDarkMode ? '#000000' : '#FFFFFF' }}>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
 
-            if (route.name === 'Home') {
-              iconName = focused ? 'barbell' : 'barbell-outline';
-            } else if (route.name === 'Progress') {
-              iconName = focused ? 'stats-chart' : 'stats-chart-outline';
-            } else if (route.name === 'Profile') {
-              iconName = focused ? 'person' : 'person-outline';
-            }
+          if (route.name === 'Home') {
+            iconName = focused ? 'barbell' : 'barbell-outline';
+          } else if (route.name === 'Progress') {
+            iconName = focused ? 'stats-chart' : 'stats-chart-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
 
-            return <Ionicons name={iconName} size={size} color={color} />;
-          },
-          tabBarActiveTintColor: isDarkMode ? '#FFFFFF' : '#000000',
-          tabBarInactiveTintColor: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
-          tabBarStyle: {
-            backgroundColor: isDarkMode ? '#000000' : '#FFFFFF',
-            borderTopColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-            elevation: 0,
-            shadowOpacity: 0,
-            height: 70,
-            paddingTop: 0,
-          },
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '500',
-          },
-          headerShown: false,
-        })}>
-        <Tab.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            headerRight: () => <ThemeToggle />,
-            headerTitle: 'Overload',
-          }}
-        />
-        <Tab.Screen name="Progress" component={ProgressScreen} />
-        <Tab.Screen name="Profile">{() => session && <ProfileScreen />}</Tab.Screen>
-      </Tab.Navigator>
-    </SafeAreaView>
+          return <Ionicons name={iconName} size={24} color={color} />;
+        },
+        tabBarActiveTintColor: isDarkMode ? '#FFFFFF' : '#000000',
+        tabBarInactiveTintColor: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
+        tabBarStyle: {
+          backgroundColor: isDarkMode ? '#000000' : '#FFFFFF',
+          borderTopColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+          elevation: 0,
+          shadowOpacity: 0,
+          height: 80,
+          paddingBottom: 15,
+          paddingTop: 5,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+          marginTop: 2,
+        },
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: isDarkMode ? '#000000' : '#FFFFFF',
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        headerTitleStyle: {
+          fontWeight: 'bold',
+          fontSize: 18,
+        },
+        headerTintColor: isDarkMode ? '#FFFFFF' : '#000000',
+      })}>
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          headerRight: () => <ThemeToggle />,
+          headerTitle: 'Overload',
+          headerRightContainerStyle: { paddingRight: 16 },
+        }}
+      />
+      <Tab.Screen name="Progress" component={ProgressScreen} />
+      <Tab.Screen name="Profile">{() => session && <ProfileScreen />}</Tab.Screen>
+    </Tab.Navigator>
   );
 }
 
@@ -111,7 +122,7 @@ export default function App() {
   }, []);
 
   return (
-    <SafeAreaProvider style={{ backgroundColor: statusBarColor }}>
+    <SafeAreaProvider>
       <StatusBar style={isDarkMode ? 'light' : 'dark'} backgroundColor={statusBarColor} />
       <GestureHandlerRootView
         style={{ flex: 1, backgroundColor: isDarkMode ? '#000000' : '#FFFFFF' }}>

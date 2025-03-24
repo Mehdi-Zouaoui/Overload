@@ -63,31 +63,37 @@ export const WorkoutCard = ({
     ]);
   };
 
-  // Dynamic styles based on theme
+  // Dynamic styles based on theme - black and white palette
   const dynamicStyles = {
     container: {
-      backgroundColor: isDarkMode ? '#1A1B1E' : '#FFFFFF',
-      borderColor: isDarkMode ? '#2A2B2E' : '#F0F0F0',
-      shadowColor: isDarkMode ? '#000' : 'rgba(0, 0, 0, 0.15)',
+      backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
+      borderColor: isDarkMode ? '#333333' : '#E0E0E0',
+      shadowColor: isDarkMode ? '#000' : 'rgba(0, 0, 0, 0.12)',
     },
     iconContainer: {
-      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-      borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+      backgroundColor: isDarkMode ? '#2A2A2A' : '#F5F5F5',
+      borderColor: isDarkMode ? '#333333' : '#E0E0E0',
     },
     title: {
       color: isDarkMode ? '#FFFFFF' : '#000000',
     },
     week: {
-      color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
+      color: isDarkMode ? '#BBBBBB' : '#555555',
     },
     exerciseCount: {
-      color: isDarkMode ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
+      color: isDarkMode ? '#999999' : '#777777',
     },
     completedBadge: {
-      backgroundColor: isDarkMode ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)',
+      backgroundColor: isDarkMode ? '#333333' : '#F0F0F0',
     },
     completedText: {
-      color: isDarkMode ? '#4ADE80' : '#16A34A',
+      color: isDarkMode ? '#FFFFFF' : '#000000',
+    },
+    menuIcon: {
+      color: isDarkMode ? '#BBBBBB' : '#555555',
+    },
+    arrowIcon: {
+      color: isDarkMode ? '#FFFFFF' : '#000000',
     },
   };
 
@@ -102,11 +108,7 @@ export const WorkoutCard = ({
       <View style={styles.contentContainer}>
         <View style={styles.leftSection}>
           <View style={[styles.iconContainer, dynamicStyles.iconContainer]}>
-            <CircleArrowRight
-              size={24}
-              color={isDarkMode ? '#ffffff' : '#000000'}
-              strokeWidth={1.5}
-            />
+            <CircleArrowRight size={24} color={dynamicStyles.arrowIcon.color} strokeWidth={1.5} />
           </View>
 
           <View style={styles.textContainer}>
@@ -115,10 +117,11 @@ export const WorkoutCard = ({
             </Text>
             <Text style={[styles.week, dynamicStyles.week]}>{week}</Text>
             {exercises.length > 0 && (
-              <Text style={[styles.exerciseCount, dynamicStyles.exerciseCount]}>
-                {exercises.length} exercise
-                {exercises.length !== 1 ? 's' : ''}
-              </Text>
+              <View style={styles.exerciseInfoContainer}>
+                <Text style={[styles.exerciseCount, dynamicStyles.exerciseCount]}>
+                  {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
+                </Text>
+              </View>
             )}
           </View>
         </View>
@@ -133,8 +136,8 @@ export const WorkoutCard = ({
           <TouchableOpacity
             onPress={handleMenuPress}
             style={styles.menuButton}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <MaterialIcons name="more-vert" size={24} color={isDarkMode ? '#ffffff' : '#000000'} />
+            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
+            <MaterialIcons name="more-vert" size={24} color={dynamicStyles.menuIcon.color} />
           </TouchableOpacity>
         </View>
       </View>
@@ -144,14 +147,15 @@ export const WorkoutCard = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
-    borderRadius: 20,
+    marginVertical: 10,
+    marginHorizontal: 16,
+    borderRadius: 16,
     padding: 18,
     borderWidth: 1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4,
   },
   contentContainer: {
     flexDirection: 'row',
@@ -180,13 +184,19 @@ const styles = StyleSheet.create({
   },
   week: {
     fontSize: 15,
-    marginBottom: 3,
+    marginBottom: 4,
     letterSpacing: -0.2,
+    fontWeight: '500',
+  },
+  exerciseInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
   },
   exerciseCount: {
     fontSize: 14,
-    marginTop: 2,
     letterSpacing: -0.1,
+    fontWeight: '400',
   },
   rightSection: {
     flexDirection: 'row',
@@ -204,6 +214,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   menuButton: {
-    padding: 6,
+    padding: 8,
+    marginRight: -8,
   },
 });
