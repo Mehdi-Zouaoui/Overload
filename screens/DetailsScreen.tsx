@@ -2,13 +2,12 @@ import { RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ExerciceCard } from 'components/ExerciceCard';
 import { Dumbbell, Weight, Save, ArrowLeft, Calendar, Clock } from 'lucide-react-native';
-import React, { useRef, useMemo, useState, useEffect } from 'react';
+import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   ScrollView,
   SafeAreaView,
-  StyleSheet,
   TouchableOpacity,
   Alert,
   Animated,
@@ -18,6 +17,8 @@ import { useThemeStore } from 'stores/themeStore';
 import { useWorkoutStore } from 'stores/workoutStore';
 
 import { PerformanceScreen, PerformanceScreenRef } from './PerformanceScreen';
+import i18n from '../i18n';
+import { createStyles } from '../styles/DetailsScreenStyles';
 
 type RootStackParamList = {
   Details: { id: string };
@@ -34,7 +35,6 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
   const performanceScreenRef = useRef<PerformanceScreenRef>(null);
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
   const saveWorkoutProgress = useWorkoutStore((state) => state.saveWorkoutProgress);
-
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
@@ -42,6 +42,7 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
 
   // State for tracking when save is in progress
   const [isSaving, setIsSaving] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Get the current session's exercises and ensure each has isDone property
   const currentSessionExercises = useMemo(() => {
@@ -50,8 +51,10 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
     const currentSession = workout.sessions[workout.sessions.length - 1];
     if (!currentSession) return [];
 
-    // currentSession is already the array of exercises
-    const exercises = Array.isArray(currentSession) ? currentSession : [];
+    // Check if currentSession is an array or has exercises property
+    const exercises = Array.isArray(currentSession)
+      ? currentSession
+      : currentSession.exercises || [];
 
     return exercises.map((exercise) => ({
       ...exercise,
@@ -148,73 +151,18 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
     }).start();
   }, [completionPercentage, progressAnim]);
 
-  // Create dynamic styles based on theme
-  const dynamicStyles = {
-    background: { backgroundColor: isDarkMode ? '#121212' : '#f8f9fa' },
-    text: { color: isDarkMode ? '#ffffff' : '#000000' },
-    weekBadge: {
-      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)',
-      color: isDarkMode ? '#ffffff' : '#000000',
-    },
-    statCard: {
-      backgroundColor: isDarkMode ? '#1E1E1E' : '#ffffff',
-      borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)',
-    },
-    divider: {
-      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
-    },
-    countBadge: {
-      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)',
-      color: isDarkMode ? '#ffffff' : '#000000',
-    },
-    subText: {
-      color: isDarkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
-    },
-    iconColor: isDarkMode ? '#ffffff' : '#000000',
-    saveButton: {
-      backgroundColor: isAllExercisesDone
-        ? isDarkMode
-          ? '#ffffff'
-          : '#000000'
-        : isDarkMode
-          ? 'rgba(255, 255, 255, 0.2)'
-          : 'rgba(0, 0, 0, 0.2)',
-      color: isAllExercisesDone
-        ? isDarkMode
-          ? '#000000'
-          : '#ffffff'
-        : isDarkMode
-          ? 'rgba(255, 255, 255, 0.5)'
-          : 'rgba(0, 0, 0, 0.5)',
-    },
-    backButton: {
-      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-      borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
-    },
-    progressBar: {
-      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)',
-      filledColor: isAllExercisesDone ? '#10b981' : isDarkMode ? '#ffffff' : '#000000',
-    },
-    highlight: {
-      color: isDarkMode ? '#ffffff' : '#000000',
-      fontWeight: '700' as const,
-    },
-    cardShadow: {
-      shadowColor: isDarkMode ? '#000000' : '#000000',
-      shadowOpacity: isDarkMode ? 0.4 : 0.1,
-    },
-    dateCard: {
-      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-      borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-    },
-    statIcon: {
-      color: isDarkMode ? '#ffffff' : '#000000',
-    },
-    statHighlight: {
-      color: isDarkMode ? '#ffffff' : '#000000',
-      fontWeight: '700' as const,
-    },
-  };
+  // Get styles based on theme
+  const { styles, dynamicStyles } = createStyles(isDarkMode);
+
+  // Create dynamic styles that depend on component state
+  const getSaveButtonStyle = () => ({
+    backgroundColor: dynamicStyles.saveButton.backgroundColor(isAllExercisesDone),
+    color: dynamicStyles.saveButton.color(isAllExercisesDone),
+  });
+
+  const getProgressBarFilledStyle = () => ({
+    backgroundColor: dynamicStyles.progressBar.filledColor(isAllExercisesDone),
+  });
 
   const handleSaveWorkout = async () => {
     if (isAllExercisesDone) {
@@ -238,6 +186,12 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
     }
   };
 
+  // Add a refresh function
+  const refreshWorkoutData = useCallback(() => {
+    // Force a re-render by updating the refresh key
+    setRefreshKey((prevKey) => prevKey + 1);
+  }, []);
+
   return (
     <SafeAreaView style={[styles.container, dynamicStyles.background]}>
       <ScrollView
@@ -250,7 +204,9 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
             style={[styles.backButton, dynamicStyles.backButton]}
             onPress={() => navigation.navigate('MainTabs' as never)}>
             <ArrowLeft size={22} color={dynamicStyles.iconColor} />
-            <Text style={[styles.backButtonText, dynamicStyles.text]}>Back</Text>
+            <Text style={[styles.backButtonText, dynamicStyles.text]}>
+              {i18n.t('detailsScreen.back')}
+            </Text>
           </TouchableOpacity>
 
           <Animated.View
@@ -261,7 +217,7 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
             <Text style={[styles.title, dynamicStyles.text]}>{workout?.title}</Text>
             <View style={[styles.weekBadge, dynamicStyles.weekBadge]}>
               <Text style={[styles.weekText, { color: dynamicStyles.weekBadge.color }]}>
-                Session {workout?.sessions.length}
+                {i18n.t('detailsScreen.session')} {workout?.sessions.length}
               </Text>
             </View>
           </Animated.View>
@@ -291,7 +247,9 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
           <View style={[styles.statCard, dynamicStyles.statCard]}>
             <View style={styles.statHeader}>
               <Dumbbell size={18} color={dynamicStyles.statIcon.color} />
-              <Text style={[styles.statLabel, dynamicStyles.subText]}>Exercises</Text>
+              <Text style={[styles.statLabel, dynamicStyles.subText]}>
+                {i18n.t('detailsScreen.exercises')}
+              </Text>
             </View>
             <View style={styles.statContent}>
               <View style={styles.statRow}>
@@ -302,7 +260,9 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
                   /{currentSessionExercises.length}
                 </Text>
                 <Text style={[styles.statSubtext, dynamicStyles.subText]}>
-                  {isAllExercisesDone ? 'Complete' : `${Math.round(completionPercentage)}%`}
+                  {isAllExercisesDone
+                    ? i18n.t('detailsScreen.complete')
+                    : `${Math.round(completionPercentage)}%`}
                 </Text>
               </View>
               <Animated.View
@@ -310,21 +270,11 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
                   styles.progressBar,
                   { backgroundColor: dynamicStyles.progressBar.backgroundColor },
                 ]}>
-                <Animated.View
-                  style={[
-                    styles.progressBarFilled,
-                    {
-                      backgroundColor: isDarkMode ? '#ffffff' : '#000000',
-                      width: progressAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: ['0%', '100%'],
-                      }),
-                    },
-                  ]}
-                />
+                <Animated.View style={[styles.progressBarFilled, getProgressBarFilledStyle()]} />
               </Animated.View>
               <Text style={[styles.statDetail, dynamicStyles.subText]}>
-                {currentSessionExercises.reduce((sum, ex) => sum + ex.sets, 0)} sets total
+                {currentSessionExercises.reduce((sum, ex) => sum + ex.sets, 0)}{' '}
+                {i18n.t('detailsScreen.setsTotal')}
               </Text>
             </View>
           </View>
@@ -332,7 +282,9 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
           <View style={[styles.statCard, dynamicStyles.statCard]}>
             <View style={styles.statHeader}>
               <Weight size={18} color={dynamicStyles.statIcon.color} />
-              <Text style={[styles.statLabel, dynamicStyles.subText]}>Total Weight</Text>
+              <Text style={[styles.statLabel, dynamicStyles.subText]}>
+                {i18n.t('detailsScreen.totalWeight')}
+              </Text>
             </View>
             <View style={styles.statContent}>
               <View style={styles.statRow}>
@@ -358,7 +310,7 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
               {workout?.sessions.length && workout.sessions.length > 1 && (
                 <View style={styles.statDetail}>
                   <Text style={dynamicStyles.subText}>
-                    Previous: {calculatePreviousSessionWeight()}kg
+                    {i18n.t('detailsScreen.previous')}: {calculatePreviousSessionWeight()}kg
                   </Text>
                 </View>
               )}
@@ -374,7 +326,9 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
         {/* Section Title with Save Button */}
         <View style={styles.sectionTitleContainer}>
           <View style={styles.sectionTitleRow}>
-            <Text style={[styles.sectionTitle, dynamicStyles.text]}>Exercises</Text>
+            <Text style={[styles.sectionTitle, dynamicStyles.text]}>
+              {i18n.t('detailsScreen.exercises')}
+            </Text>
             <View style={[styles.countBadge, dynamicStyles.countBadge]}>
               <Text style={[styles.countText, { color: dynamicStyles.countBadge.color }]}>
                 {currentSessionExercises.length}
@@ -383,19 +337,31 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
           </View>
 
           <TouchableOpacity
-            style={[styles.saveButton, dynamicStyles.saveButton]}
+            style={[styles.saveButton, getSaveButtonStyle()]}
             onPress={handleSaveWorkout}
             disabled={!isAllExercisesDone || isSaving}
             activeOpacity={0.7}>
             {isSaving ? (
-              <Text style={[styles.saveButtonText, { color: dynamicStyles.saveButton.color }]}>
-                Saving...
+              <Text
+                style={[
+                  styles.saveButtonText,
+                  { color: dynamicStyles.saveButton.color(isAllExercisesDone) },
+                ]}>
+                {i18n.t('detailsScreen.saving')}
               </Text>
             ) : (
               <>
-                <Save size={16} color={dynamicStyles.saveButton.color} strokeWidth={2} />
-                <Text style={[styles.saveButtonText, { color: dynamicStyles.saveButton.color }]}>
-                  Save Workout
+                <Save
+                  size={16}
+                  color={dynamicStyles.saveButton.color(isAllExercisesDone)}
+                  strokeWidth={2}
+                />
+                <Text
+                  style={[
+                    styles.saveButtonText,
+                    { color: dynamicStyles.saveButton.color(isAllExercisesDone) },
+                  ]}>
+                  {i18n.t('detailsScreen.saveWorkout')}
                 </Text>
               </>
             )}
@@ -406,7 +372,7 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
         <View style={styles.exercisesContainer}>
           {currentSessionExercises.map((exercise, index) => (
             <Animated.View
-              key={exercise.id}
+              key={`${exercise.id}-${refreshKey}`}
               style={[
                 styles.exerciseItem,
                 index % 2 === 0 ? styles.exerciseItemLeft : styles.exerciseItemRight,
@@ -440,229 +406,9 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
         </View>
       </ScrollView>
 
-      <PerformanceScreen ref={performanceScreenRef} />
+      <PerformanceScreen ref={performanceScreenRef} onDataChange={refreshWorkoutData} />
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollViewContent: {
-    paddingBottom: 40,
-  },
-  headerSection: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    alignSelf: 'flex-start',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  backButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 6,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    letterSpacing: -0.5,
-  },
-  weekBadge: {
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  weekText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  dateCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    marginBottom: 24,
-    borderWidth: 1,
-  },
-  dateItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dateText: {
-    fontSize: 13,
-    marginLeft: 6,
-    fontWeight: '500',
-  },
-  progressSummary: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  statCard: {
-    width: '47%',
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  statHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  statLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    marginLeft: 6,
-  },
-  statContent: {
-    width: '100%',
-  },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginBottom: 6,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  statSubtext: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  statChange: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  statDetail: {
-    fontSize: 11,
-    marginTop: 6,
-  },
-  unitText: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 2,
-  },
-  progressBar: {
-    height: 4,
-    width: '100%',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressBarFilled: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  trendUp: {
-    color: '#000000',
-    fontWeight: 'bold',
-  },
-  trendDown: {
-    color: '#000000',
-    fontWeight: 'bold',
-  },
-  trendSame: {
-    color: '#000000',
-    fontWeight: 'bold',
-  },
-  divider: {
-    height: 1,
-    width: '92%',
-    alignSelf: 'center',
-    marginBottom: 24,
-  },
-  sectionTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 18,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    letterSpacing: -0.5,
-  },
-  countBadge: {
-    marginLeft: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  countText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  exercisesContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  exerciseItem: {
-    width: '50%',
-    marginBottom: 16,
-  },
-  exerciseItemLeft: {
-    paddingRight: 6,
-  },
-  exerciseItemRight: {
-    paddingLeft: 6,
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  saveButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 6,
-    letterSpacing: 0.2,
-  },
-});
 
 export default DetailsScreen;

@@ -1,266 +1,266 @@
 import { useNavigation } from '@react-navigation/native';
 import { useSession } from 'context/SessionProvider';
-import { User, Settings, LogOut, Moon, Sun, ChevronRight } from 'lucide-react-native';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import {
+  Settings,
+  LogOut,
+  Shield,
+  HelpCircle,
+  ChevronRight,
+  Activity,
+  Calendar,
+  Edit2,
+} from 'lucide-react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  StatusBar,
+  ActivityIndicator,
+} from 'react-native';
 
+import DefaultProfileImage from '../assets/default_profile.png';
+import i18n from '../i18n';
 import { supabase } from '../lib/supabase';
+import { useProfileStore } from '../stores/profileStore';
 import { useThemeStore } from '../stores/themeStore';
+import { createStyles } from '../styles/ProfileScreenStyles';
 
 export default function ProfileScreen() {
-  const isDarkMode = useThemeStore((state) => state.isDarkMode);
-  const toggleTheme = useThemeStore((state) => state.toggleTheme);
   const navigation = useNavigation();
   const { session } = useSession();
+  const isDarkMode = useThemeStore((state) => state.isDarkMode);
+  const { profile, loading: profileLoading } = useProfileStore();
+
+  const { styles, dynamicStyles } = createStyles(isDarkMode);
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    navigation.navigate('Login' as never);
   };
 
-  const theme = {
-    colors: {
-      background: isDarkMode ? '#121212' : '#FFFFFF',
-      card: isDarkMode ? '#1E1E1E' : '#F5F5F5',
-      text: isDarkMode ? '#FFFFFF' : '#000000',
-      textSecondary: isDarkMode ? '#BBBBBB' : '#555555',
-      accent: isDarkMode ? '#FFFFFF' : '#000000',
-      border: isDarkMode ? '#333333' : '#E0E0E0',
-      icon: isDarkMode ? '#FFFFFF' : '#000000',
-      danger: isDarkMode ? '#FFFFFF' : '#000000',
-      toggle: {
-        track: isDarkMode ? '#555555' : '#CCCCCC',
-        thumb: isDarkMode ? '#FFFFFF' : '#000000',
-      },
-    },
-    spacing: {
-      xs: 8,
-      sm: 12,
-      md: 16,
-      lg: 24,
-      xl: 32,
-    },
-    radius: {
-      sm: 8,
-      md: 12,
-      lg: 16,
-      full: 9999,
-    },
+  // Get current date for display
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  // Use profile data if available, otherwise fallback to mock data
+  const userStats = profile?.stats || {
+    workoutsCompleted: 12,
+    daysActive: 8,
+    totalSets: 145,
+    lastWorkout: '2 days ago',
   };
+
+  // Function to format the date nicely
+  const formatMemberSinceDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  // Show loading indicator while profile is loading
+  if (profileLoading) {
+    return (
+      <View style={[styles.container, dynamicStyles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={isDarkMode ? '#FFFFFF' : '#000000'} />
+      </View>
+    );
+  }
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.contentContainer}>
-      {/* Profile Header */}
-      <View style={styles.profileHeader}>
-        <View style={styles.avatarWrapper}>
-          <Image
-            source={{
-              uri: session?.user?.user_metadata?.avatar_url || 'https://via.placeholder.com/100',
-            }}
-            style={[styles.avatar, { borderColor: theme.colors.accent }]}
-          />
+    <View style={[styles.container, dynamicStyles.container]}>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.contentContainer}>
+        {/* Date Display */}
+        <View style={styles.dateContainer}>
+          <Text style={[styles.dateText, dynamicStyles.dateText]}>{formattedDate}</Text>
         </View>
 
-        <Text style={[styles.userName, { color: theme.colors.text }]}>
-          {session?.user?.user_metadata?.full_name || 'User Name'}
-        </Text>
+        {/* Profile Header */}
+        <View style={[styles.header, dynamicStyles.header]}>
+          <View style={styles.profileSection}>
+            <Image
+              source={
+                profile?.avatar_url
+                  ? { uri: profile.avatar_url }
+                  : session?.user?.user_metadata?.avatar_url
+                    ? { uri: session.user.user_metadata.avatar_url }
+                    : DefaultProfileImage
+              }
+              style={styles.avatar}
+            />
+            <View style={styles.profileInfo}>
+              <Text style={[styles.userName, dynamicStyles.userName]}>
+                {profile?.full_name ||
+                  session?.user?.user_metadata?.full_name ||
+                  i18n.t('profileScreen.defaultName')}
+              </Text>
+              <Text style={[styles.userEmail, dynamicStyles.userEmail]}>
+                {session?.user?.email || 'email@example.com'}
+              </Text>
+              <View style={styles.userMeta}>
+                <View style={styles.metaItem}>
+                  <Calendar
+                    size={12}
+                    color={isDarkMode ? '#BBBBBB' : '#666666'}
+                    style={styles.metaIcon}
+                  />
+                  <Text style={[styles.metaText, dynamicStyles.userEmail]}>
+                    {i18n.t('profileScreen.memberSince')}{' '}
+                    {session?.user?.created_at
+                      ? formatMemberSinceDate(session.user.created_at)
+                      : 'N/A'}
+                  </Text>
+                </View>
+              </View>
+            </View>
 
-        <Text style={[styles.userEmail, { color: theme.colors.textSecondary }]}>
-          {session?.user?.email || 'email@example.com'}
-        </Text>
+            <TouchableOpacity
+              style={[styles.editProfileButton, dynamicStyles.editProfileButton]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('ProfileUpdate' as never)}>
+              <Edit2 size={16} color={dynamicStyles.editProfileIconColor.color} />
+            </TouchableOpacity>
+          </View>
+        </View>
 
-        <TouchableOpacity
-          style={[styles.editProfileButton, { backgroundColor: theme.colors.accent }]}
-          activeOpacity={0.8}>
-          <Text style={[styles.editProfileText, { color: isDarkMode ? '#000000' : '#FFFFFF' }]}>
-            Edit Profile
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Settings Section */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Settings</Text>
-
-        <View style={[styles.card, { backgroundColor: theme.colors.card }]}>
-          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
-            <View style={styles.menuItemLeft}>
-              <User size={20} color={theme.colors.icon} />
-              <Text style={[styles.menuItemText, { color: theme.colors.text }]}>
-                Personal Information
+        {/* Quick Stats */}
+        <View style={styles.statsContainer}>
+          <View style={[styles.statCard, dynamicStyles.card]}>
+            <View style={styles.statHeader}>
+              <Activity size={16} color={dynamicStyles.userName.color} />
+              <Text style={[styles.statValue, dynamicStyles.userName]}>
+                {userStats.workoutsCompleted}
               </Text>
             </View>
-            <ChevronRight size={18} color={theme.colors.icon} />
-          </TouchableOpacity>
-
-          <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
-
-          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
-            <View style={styles.menuItemLeft}>
-              <Settings size={20} color={theme.colors.icon} />
-              <Text style={[styles.menuItemText, { color: theme.colors.text }]}>Preferences</Text>
-            </View>
-            <ChevronRight size={18} color={theme.colors.icon} />
-          </TouchableOpacity>
-
-          <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
-
-          <TouchableOpacity style={styles.menuItem} onPress={toggleTheme} activeOpacity={0.7}>
-            <View style={styles.menuItemLeft}>
-              {isDarkMode ? (
-                <Sun size={20} color={theme.colors.icon} />
-              ) : (
-                <Moon size={20} color={theme.colors.icon} />
-              )}
-              <Text style={[styles.menuItemText, { color: theme.colors.text }]}>
-                {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+            <View style={styles.statContent}>
+              <Text style={[styles.statLabel, dynamicStyles.userEmail]}>
+                {i18n.t('profileScreen.workouts')}
+              </Text>
+              <Text style={[styles.statDetail, dynamicStyles.userEmail]}>
+                {userStats.totalSets} {i18n.t('profileScreen.setsCompleted')}
               </Text>
             </View>
-            <View style={[styles.toggle, { backgroundColor: theme.colors.toggle.track }]}>
-              <View
-                style={[
-                  styles.toggleThumb,
-                  { backgroundColor: theme.colors.toggle.thumb },
-                  isDarkMode && styles.toggleThumbActive,
-                ]}
-              />
+          </View>
+
+          <View style={[styles.statCard, dynamicStyles.card]}>
+            <View style={styles.statHeader}>
+              <Calendar size={16} color={dynamicStyles.userName.color} />
+              <Text style={[styles.statValue, dynamicStyles.userName]}>{userStats.daysActive}</Text>
+            </View>
+            <View style={styles.statContent}>
+              <Text style={[styles.statLabel, dynamicStyles.userEmail]}>
+                {i18n.t('profileScreen.daysActive')}
+              </Text>
+              <Text style={[styles.statDetail, dynamicStyles.userEmail]}>
+                {i18n.t('profileScreen.lastWorkout')}: {userStats.lastWorkout}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Settings Sections */}
+        <View style={styles.sectionsContainer}>
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
+              {i18n.t('profileScreen.account')}
+            </Text>
+
+            <View style={[styles.card, dynamicStyles.card]}>
+              <View style={[styles.divider, dynamicStyles.divider]} />
+
+              <TouchableOpacity
+                style={styles.menuItem}
+                activeOpacity={0.6}
+                onPress={() => navigation.navigate('PrivacySecurity' as never)}>
+                <View style={styles.menuItemLeft}>
+                  <View style={[styles.iconContainer, dynamicStyles.iconBackground]}>
+                    <Shield size={16} color={dynamicStyles.iconColor.color} />
+                  </View>
+                  <Text style={[styles.menuItemText, dynamicStyles.menuItemText]}>
+                    {i18n.t('profileScreen.privacySecurity')}
+                  </Text>
+                </View>
+                <ChevronRight size={14} color={dynamicStyles.chevronColor.color} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
+              {i18n.t('profileScreen.preferences')}
+            </Text>
+
+            <View style={[styles.card, dynamicStyles.card]}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                activeOpacity={0.6}
+                onPress={() => navigation.navigate('AppSettings' as never)}>
+                <View style={styles.menuItemLeft}>
+                  <View style={[styles.iconContainer, dynamicStyles.iconBackground]}>
+                    <Settings size={16} color={dynamicStyles.iconColor.color} />
+                  </View>
+                  <Text style={[styles.menuItemText, dynamicStyles.menuItemText]}>
+                    {i18n.t('profileScreen.appSettings')}
+                  </Text>
+                </View>
+                <ChevronRight size={14} color={dynamicStyles.chevronColor.color} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
+              {i18n.t('profileScreen.support')}
+            </Text>
+
+            <View style={[styles.card, dynamicStyles.card]}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                activeOpacity={0.6}
+                onPress={() => navigation.navigate('HelpSupport' as never)}>
+                <View style={styles.menuItemLeft}>
+                  <View style={[styles.iconContainer, dynamicStyles.iconBackground]}>
+                    <HelpCircle size={16} color={dynamicStyles.iconColor.color} />
+                  </View>
+                  <Text style={[styles.menuItemText, dynamicStyles.menuItemText]}>
+                    {i18n.t('profileScreen.helpSupport')}
+                  </Text>
+                </View>
+                <ChevronRight size={14} color={dynamicStyles.chevronColor.color} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.signOutButton, dynamicStyles.signOutButton]}
+            activeOpacity={0.7}
+            onPress={signOut}>
+            <View style={styles.buttonContent}>
+              <LogOut size={16} color={dynamicStyles.signOutText.color} style={styles.buttonIcon} />
+              <Text style={[styles.signOutText, dynamicStyles.signOutText]}>
+                {i18n.t('profileScreen.signOut')}
+              </Text>
             </View>
           </TouchableOpacity>
+
+          <View style={styles.footer}>
+            <Text style={[styles.versionText, dynamicStyles.versionText]}>
+              {i18n.t('profileScreen.version')} 1.0.0
+            </Text>
+          </View>
         </View>
-      </View>
-
-      {/* Account Section */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Account</Text>
-
-        <View style={[styles.card, { backgroundColor: theme.colors.card }]}>
-          <TouchableOpacity style={styles.menuItem} onPress={signOut} activeOpacity={0.7}>
-            <View style={styles.menuItemLeft}>
-              <LogOut size={20} color={theme.colors.danger} />
-              <Text style={[styles.menuItemText, { color: theme.colors.danger }]}>Sign Out</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
-          Version 1.0.0
-        </Text>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingBottom: 40,
-  },
-  profileHeader: {
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-  },
-  avatarWrapper: {
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 2,
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  userEmail: {
-    fontSize: 16,
-    marginBottom: 24,
-  },
-  editProfileButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  editProfileText: {
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  section: {
-    marginBottom: 24,
-    paddingHorizontal: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  card: {
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
-    overflow: 'hidden',
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-  },
-  menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  menuItemText: {
-    fontSize: 16,
-    marginLeft: 16,
-    fontWeight: '500',
-  },
-  divider: {
-    height: 1,
-  },
-  toggle: {
-    width: 50,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    padding: 2,
-  },
-  toggleThumb: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  toggleThumbActive: {
-    transform: [{ translateX: 22 }],
-  },
-  footer: {
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  footerText: {
-    fontSize: 14,
-  },
-});

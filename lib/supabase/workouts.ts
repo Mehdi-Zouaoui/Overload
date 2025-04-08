@@ -16,6 +16,7 @@ export async function createWorkout(userId: string, workout: Omit<Workout, 'id' 
       week: workout.week,
       completed: workout.completed || false,
       sessions: workout.sessions, // Store the entire sessions array as JSONB
+      isFavorite: workout.isFavorite || false,
     })
     .select();
 
@@ -184,6 +185,22 @@ export async function updateExercise(
 
   if (error) {
     console.error('Error updating exercise:', error);
+    return { data: null, error };
+  }
+
+  return { data: data[0], error: null };
+}
+
+// Update a workout's favorite status
+export async function updateWorkoutFavorite(workoutId: string, isFavorite: boolean) {
+  const { data, error } = await supabase
+    .from('workouts')
+    .update({ isFavorite }) // Using camelCase to match your schema
+    .eq('id', workoutId)
+    .select();
+
+  if (error) {
+    console.error('Error updating workout favorite status:', error);
     return { data: null, error };
   }
 

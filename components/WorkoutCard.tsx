@@ -1,11 +1,12 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { CircleArrowRight } from 'lucide-react-native';
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { Session } from 'stores/workoutStore';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 
+import i18n from '../i18n';
 import { useThemeStore } from '../stores/themeStore';
-import { useWorkoutStore } from '../stores/workoutStore';
+import { useWorkoutStore, Session } from '../stores/workoutStore';
+import { styles, createDynamicStyles } from '../styles/WorkoutCardStyles';
 
 interface WorkoutCardProps {
   title: string;
@@ -15,10 +16,11 @@ interface WorkoutCardProps {
   onPress?: () => void;
   className?: string;
   week: string;
+  isFavorite?: boolean;
 }
 
 type NavigationProps = {
-  navigate: (screen: string, params: { title?: string; id: string }) => void;
+  navigate: (screen: string, params: { title?: string; id: string; mode?: 'add' | 'edit' }) => void;
 };
 
 export const WorkoutCard = ({
@@ -28,29 +30,39 @@ export const WorkoutCard = ({
   completed,
   onPress,
   week,
+  isFavorite,
 }: WorkoutCardProps) => {
   const navigation = useNavigation<NavigationProps>();
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
   const removeWorkout = useWorkoutStore((state) => state.removeWorkout);
+  const toggleFavorite = useWorkoutStore((state) => state.toggleFavorite);
+
+  const dynamicStyles = createDynamicStyles(isDarkMode);
 
   // Handle the case where sessions is an array of exercise arrays
   const exercises = Array.isArray(sessions?.[0]) ? sessions[0] : sessions?.[0]?.exercises || [];
 
   const handleMenuPress = (event: any) => {
     event.stopPropagation(); // Prevent triggering the card's onPress
-    Alert.alert('Workout Options', 'Choose an action', [
+    Alert.alert(i18n.t('workoutCard.options'), i18n.t('workoutCard.chooseAction'), [
       {
-        text: 'Edit',
-        onPress: () => navigation.navigate('EditWorkout', { id }),
+        text: isFavorite
+          ? i18n.t('workoutCard.removeFromFavorites')
+          : i18n.t('workoutCard.addToFavorites'),
+        onPress: () => toggleFavorite(id),
       },
       {
-        text: 'Delete',
+        text: i18n.t('workoutCard.edit'),
+        onPress: () => navigation.navigate('WorkoutForm', { mode: 'edit', id }),
+      },
+      {
+        text: i18n.t('workoutCard.delete'),
         style: 'destructive',
         onPress: () => {
-          Alert.alert('Delete Workout', 'Are you sure you want to delete this workout?', [
-            { text: 'Cancel', style: 'cancel' },
+          Alert.alert(i18n.t('workoutCard.deleteWorkout'), i18n.t('workoutCard.confirmDelete'), [
+            { text: i18n.t('common.cancel'), style: 'cancel' },
             {
-              text: 'Delete',
+              text: i18n.t('workoutCard.delete'),
               style: 'destructive',
               onPress: () => {
                 removeWorkout(id);
@@ -59,42 +71,14 @@ export const WorkoutCard = ({
           ]);
         },
       },
-      { text: 'Cancel', style: 'cancel' },
+      { text: i18n.t('common.cancel'), style: 'cancel' },
     ]);
   };
 
-  // Dynamic styles based on theme - black and white palette
-  const dynamicStyles = {
-    container: {
-      backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
-      borderColor: isDarkMode ? '#333333' : '#E0E0E0',
-      shadowColor: isDarkMode ? '#000' : 'rgba(0, 0, 0, 0.12)',
-    },
-    iconContainer: {
-      backgroundColor: isDarkMode ? '#2A2A2A' : '#F5F5F5',
-      borderColor: isDarkMode ? '#333333' : '#E0E0E0',
-    },
-    title: {
-      color: isDarkMode ? '#FFFFFF' : '#000000',
-    },
-    week: {
-      color: isDarkMode ? '#BBBBBB' : '#555555',
-    },
-    exerciseCount: {
-      color: isDarkMode ? '#999999' : '#777777',
-    },
-    completedBadge: {
-      backgroundColor: isDarkMode ? '#333333' : '#F0F0F0',
-    },
-    completedText: {
-      color: isDarkMode ? '#FFFFFF' : '#000000',
-    },
-    menuIcon: {
-      color: isDarkMode ? '#BBBBBB' : '#555555',
-    },
-    arrowIcon: {
-      color: isDarkMode ? '#FFFFFF' : '#000000',
-    },
+  // Handle direct favorite toggle
+  const handleFavoriteToggle = (event: any) => {
+    event.stopPropagation(); // Prevent triggering the card's onPress
+    toggleFavorite(id);
   };
 
   return (
@@ -104,7 +88,14 @@ export const WorkoutCard = ({
         onPress?.();
       }}
       activeOpacity={0.85}
-      style={[styles.container, dynamicStyles.container]}>
+      style={[
+        styles.container,
+        dynamicStyles.container,
+        isFavorite && styles.favoriteContainer,
+        isFavorite && dynamicStyles.favoriteContainer,
+      ]}>
+      {isFavorite && <View style={[styles.favoriteIndicator, dynamicStyles.favoriteIndicator]} />}
+
       <View style={styles.contentContainer}>
         <View style={styles.leftSection}>
           <View style={[styles.iconContainer, dynamicStyles.iconContainer]}>
@@ -119,7 +110,10 @@ export const WorkoutCard = ({
             {exercises.length > 0 && (
               <View style={styles.exerciseInfoContainer}>
                 <Text style={[styles.exerciseCount, dynamicStyles.exerciseCount]}>
-                  {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
+                  {exercises.length}{' '}
+                  {i18n.t(
+                    exercises.length !== 1 ? 'workoutCard.exercises' : 'workoutCard.exercise'
+                  )}
                 </Text>
               </View>
             )}
@@ -129,9 +123,23 @@ export const WorkoutCard = ({
         <View style={styles.rightSection}>
           {completed && (
             <View style={[styles.completedBadge, dynamicStyles.completedBadge]}>
-              <Text style={[styles.completedText, dynamicStyles.completedText]}>Completed</Text>
+              <Text style={[styles.completedText, dynamicStyles.completedText]}>
+                {i18n.t('workoutCard.completed')}
+              </Text>
             </View>
           )}
+
+          <TouchableOpacity
+            onPress={handleFavoriteToggle}
+            style={styles.pinButton}
+            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
+            <MaterialIcons
+              name={isFavorite ? 'push-pin' : 'outlined-flag'}
+              size={20}
+              color={isFavorite ? dynamicStyles.pinIconActive.color : dynamicStyles.pinIcon.color}
+              style={isFavorite ? {} : { display: 'none' }}
+            />
+          </TouchableOpacity>
 
           <TouchableOpacity
             onPress={handleMenuPress}
@@ -144,77 +152,3 @@ export const WorkoutCard = ({
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginVertical: 10,
-    marginHorizontal: 16,
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 1,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  contentContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  leftSection: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconContainer: {
-    marginRight: 18,
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-  },
-  textContainer: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 6,
-    letterSpacing: -0.3,
-  },
-  week: {
-    fontSize: 15,
-    marginBottom: 4,
-    letterSpacing: -0.2,
-    fontWeight: '500',
-  },
-  exerciseInfoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  exerciseCount: {
-    fontSize: 14,
-    letterSpacing: -0.1,
-    fontWeight: '400',
-  },
-  rightSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  completedBadge: {
-    marginRight: 10,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-  },
-  completedText: {
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: -0.2,
-  },
-  menuButton: {
-    padding: 8,
-    marginRight: -8,
-  },
-});

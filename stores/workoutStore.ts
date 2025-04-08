@@ -3,6 +3,7 @@ import {
   getUserWorkouts,
   removeWorkout,
   saveWorkoutProgress as saveWorkoutProgressAPI,
+  updateWorkoutFavorite,
 } from 'lib/supabase/workouts';
 import { create } from 'zustand';
 
@@ -30,6 +31,7 @@ export interface Workout {
   completed: boolean;
   created_at: Date;
   week: string;
+  isFavorite?: boolean;
 }
 
 interface WorkoutStore {
@@ -40,6 +42,7 @@ interface WorkoutStore {
   updateWorkout: (id: string, workout: Partial<Workout>) => void;
   updateExercise: (id: string, exercise: Partial<Exercise>) => void;
   toggleWorkoutCompletion: (id: string) => void;
+  toggleFavorite: (id: string) => void;
   setWorkouts: (workouts: Workout[]) => void;
   // Getters
   getUserWorkouts: (userId: string) => Promise<Workout[]>;
@@ -50,10 +53,14 @@ interface WorkoutStore {
   // Progress calculation
   calculateWorkoutProgress: (workoutId: string, comparisonMode?: 'last' | 'all') => any | null;
   saveWorkoutProgress: (workoutId: string, exercises: Exercise[]) => Promise<void>;
+  refetchWorkouts: (() => Promise<any>) | null;
+  setRefetchWorkouts: (refetch: () => Promise<any>) => void;
 }
 
 export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   workouts: [],
+  refetchWorkouts: null,
+  setRefetchWorkouts: (refetch) => set({ refetchWorkouts: refetch }),
   addWorkout: async (userId, workoutData) => {
     // First add to database
     const { data, error } = await createWorkout(userId, workoutData);
@@ -69,6 +76,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         data, // Use the returned data which includes the ID and created date
       ],
     }));
+
+    // After the operation completes, call refetch if available
+    const { refetchWorkouts } = get();
+    if (refetchWorkouts) await refetchWorkouts();
   },
 
   removeWorkout: async (id) => {
@@ -80,16 +91,25 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     set((state) => ({
       workouts: state.workouts.filter((workout) => workout.id !== id),
     }));
+
+    // After the operation completes, call refetch if available
+    const { refetchWorkouts } = get();
+    if (refetchWorkouts) await refetchWorkouts();
   },
 
-  updateWorkout: (id, updatedWorkout) =>
+  updateWorkout: (id, updatedWorkout) => {
     set((state) => ({
       workouts: state.workouts.map((workout) =>
         workout.id === id ? { ...workout, ...updatedWorkout } : workout
       ),
-    })),
+    }));
 
-  updateExercise: (combinedId: string, updatedExercise: Partial<Exercise>) => {
+    // After the operation completes, call refetch if available
+    const { refetchWorkouts } = get();
+    if (refetchWorkouts) refetchWorkouts();
+  },
+
+  updateExercise: async (combinedId: string, updatedExercise: Partial<Exercise>) => {
     set((state) => ({
       workouts: state.workouts.map((workout) => {
         // Parse the UUID format
@@ -131,14 +151,54 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         };
       }),
     }));
+
+    // After the operation completes, call refetch if available
   },
 
-  toggleWorkoutCompletion: (id) =>
+  toggleWorkoutCompletion: (id) => {
     set((state) => ({
       workouts: state.workouts.map((workout) =>
         workout.id === id ? { ...workout, completed: !workout.completed } : workout
       ),
-    })),
+    }));
+
+    // After the operation completes, call refetch if available
+    const { refetchWorkouts } = get();
+    if (refetchWorkouts) refetchWorkouts();
+  },
+
+  toggleFavorite: async (id) => {
+    // Get the current workout to determine the new favorite status
+    const workout = get().workouts.find((w) => w.id === id);
+    if (!workout) return;
+
+    const newFavoriteStatus = !workout.isFavorite;
+
+    // Update local state first for immediate UI feedback
+    set((state) => ({
+      workouts: state.workouts.map((workout) =>
+        workout.id === id ? { ...workout, isFavorite: newFavoriteStatus } : workout
+      ),
+    }));
+
+    // Then update in the database
+    const { error } = await updateWorkoutFavorite(id, newFavoriteStatus);
+
+    if (error) {
+      console.error('Failed to update favorite status:', error);
+      // Revert the local state change if the API call failed
+      set((state) => ({
+        workouts: state.workouts.map((workout) =>
+          workout.id === id ? { ...workout, isFavorite: !newFavoriteStatus } : workout
+        ),
+      }));
+      return;
+    }
+
+    // After the operation completes, call refetch if available
+    const { refetchWorkouts } = get();
+    if (refetchWorkouts) await refetchWorkouts();
+  },
 
   setWorkouts: (workouts) => set({ workouts }),
 
@@ -264,6 +324,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     set((state) => ({
       workouts: state.workouts.map((w) => (w.id === workoutId ? { ...w, completed: true } : w)),
     }));
+
+    // After the operation completes, call refetch if available
+    const { refetchWorkouts } = get();
+    if (refetchWorkouts) await refetchWorkouts();
   },
 }));
 
@@ -468,3 +532,12 @@ function calculateVolumeProgress(
     percentageIncrease: percentageIncrease.toFixed(1) + '%',
   };
 }
+
+const sortedWorkouts = [...useWorkoutStore.getState().workouts].sort((a, b) => {
+  // Sort by favorite status first (favorites come first)
+  if (a.isFavorite && !b.isFavorite) return -1;
+  if (!a.isFavorite && b.isFavorite) return 1;
+
+  // Then sort by other criteria (e.g., date, name)
+  return 0;
+});
