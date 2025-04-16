@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { CircleArrowRight } from 'lucide-react-native';
+import { List } from 'lucide-react-native';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 
 import i18n from '../i18n';
@@ -99,7 +99,7 @@ export const WorkoutCard = ({
       <View style={styles.contentContainer}>
         <View style={styles.leftSection}>
           <View style={[styles.iconContainer, dynamicStyles.iconContainer]}>
-            <CircleArrowRight size={24} color={dynamicStyles.arrowIcon.color} strokeWidth={1.5} />
+            <List size={24} color={dynamicStyles.arrowIcon.color} strokeWidth={1.5} />
           </View>
 
           <View style={styles.textContainer}>

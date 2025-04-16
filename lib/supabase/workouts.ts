@@ -206,3 +206,23 @@ export async function updateWorkoutFavorite(workoutId: string, isFavorite: boole
 
   return { data: data[0], error: null };
 }
+
+// Update a workout
+export async function updateWorkout(workoutId: string, updatedWorkout: Partial<Workout>) {
+  const { data, error } = await supabase
+    .from('workouts')
+    .update({
+      title: updatedWorkout.title,
+      sessions: updatedWorkout.sessions,
+      // Add any other fields you want to update
+    })
+    .eq('id', workoutId)
+    .select();
+
+  if (error) {
+    console.error('Error updating workout:', error);
+    return { data: null, error };
+  }
+
+  return { data: data[0], error: null };
+}

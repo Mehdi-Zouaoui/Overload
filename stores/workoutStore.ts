@@ -2,6 +2,7 @@ import {
   createWorkout,
   getUserWorkouts,
   removeWorkout,
+  updateWorkout as updateWorkoutAPI,
   saveWorkoutProgress as saveWorkoutProgressAPI,
   updateWorkoutFavorite,
 } from 'lib/supabase/workouts';
@@ -97,12 +98,20 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     if (refetchWorkouts) await refetchWorkouts();
   },
 
-  updateWorkout: (id, updatedWorkout) => {
+  updateWorkout: async (id, updatedWorkout) => {
+    // Update local state first for immediate UI feedback
     set((state) => ({
       workouts: state.workouts.map((workout) =>
         workout.id === id ? { ...workout, ...updatedWorkout } : workout
       ),
     }));
+
+    // Then update in the database
+    const { error } = await updateWorkoutAPI(id, updatedWorkout);
+
+    if (error) {
+      console.error('Failed to update workout:', error);
+    }
 
     // After the operation completes, call refetch if available
     const { refetchWorkouts } = get();
