@@ -1,6 +1,14 @@
 import { List, Dumbbell, BarChart3, Repeat } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  SafeAreaView,
+  Platform,
+  StatusBar,
+} from 'react-native';
 
 import i18n from '../i18n';
 import { useThemeStore } from '../stores/themeStore';
@@ -155,7 +163,12 @@ export default function ProgressScreen() {
   }, [isDarkMode]);
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        { backgroundColor: colors.background },
+        Platform.OS === 'android' && { paddingTop: StatusBar.currentHeight },
+      ]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={[styles.scrollView, { backgroundColor: colors.background }]}>

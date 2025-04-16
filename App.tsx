@@ -30,6 +30,8 @@ import PrivacySecurityScreen from './screens/PrivacySecurityScreen';
 import { useProfileStore } from './stores/profileStore';
 import { useThemeStore } from './stores/themeStore';
 
+import { Platform } from 'react-native';
+
 type RootStackParamList = {
   MainTabs: undefined;
   Details: { id: string };
@@ -67,9 +69,9 @@ function MainTabs() {
           borderTopWidth: 0.5,
           elevation: 0,
           shadowOpacity: 0,
-          height: 80,
-          paddingBottom: 8,
-          paddingTop: 8,
+          height: Platform.OS === 'android' ? 60 : 80,
+
+          paddingTop: Platform.OS === 'android' ? 0 : 8,
         },
         tabBarLabelStyle: {
           fontSize: 11,

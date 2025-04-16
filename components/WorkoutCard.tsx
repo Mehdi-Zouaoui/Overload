@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { List } from 'lucide-react-native';
+import { Dumbbell } from 'lucide-react-native';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 
 import i18n from '../i18n';
@@ -87,7 +87,7 @@ export const WorkoutCard = ({
         navigation.navigate('Details', { title, id });
         onPress?.();
       }}
-      activeOpacity={0.85}
+      activeOpacity={0.9}
       style={[
         styles.container,
         dynamicStyles.container,
@@ -99,7 +99,7 @@ export const WorkoutCard = ({
       <View style={styles.contentContainer}>
         <View style={styles.leftSection}>
           <View style={[styles.iconContainer, dynamicStyles.iconContainer]}>
-            <List size={24} color={dynamicStyles.arrowIcon.color} strokeWidth={1.5} />
+            <Dumbbell size={22} color={isDarkMode ? '#FFFFFF' : '#000000'} strokeWidth={2} />
           </View>
 
           <View style={styles.textContainer}>
@@ -108,7 +108,7 @@ export const WorkoutCard = ({
             </Text>
             <Text style={[styles.week, dynamicStyles.week]}>{week}</Text>
             {exercises.length > 0 && (
-              <View style={styles.exerciseInfoContainer}>
+              <View style={[styles.exerciseInfoContainer, dynamicStyles.exerciseCountContainer]}>
                 <Text style={[styles.exerciseCount, dynamicStyles.exerciseCount]}>
                   {exercises.length}{' '}
                   {i18n.t(
@@ -134,7 +134,7 @@ export const WorkoutCard = ({
             style={styles.pinButton}
             hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
             <MaterialIcons
-              name={isFavorite ? 'push-pin' : 'outlined-flag'}
+              name={isFavorite ? 'star' : 'star-outline'}
               size={20}
               color={isFavorite ? dynamicStyles.pinIconActive.color : dynamicStyles.pinIcon.color}
               style={isFavorite ? {} : { display: 'none' }}
@@ -145,7 +145,7 @@ export const WorkoutCard = ({
             onPress={handleMenuPress}
             style={styles.menuButton}
             hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
-            <MaterialIcons name="more-vert" size={24} color={dynamicStyles.menuIcon.color} />
+            <MaterialIcons name="more-vert" size={22} color={dynamicStyles.menuIcon.color} />
           </TouchableOpacity>
         </View>
       </View>
