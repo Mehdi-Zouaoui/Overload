@@ -1,111 +1,111 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 export const createDynamicStyles = (isDarkMode: boolean) => ({
   card: {
     backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
-    borderColor: isDarkMode ? '#333333' : '#E0E0E0',
+    borderColor: isDarkMode ? '#333333' : '#000000',
+    shadowColor: '#000000',
   },
   text: {
     color: isDarkMode ? '#FFFFFF' : '#000000',
   },
   subtext: {
-    color: isDarkMode ? '#BBBBBB' : '#666666',
+    color: isDarkMode ? '#AAAAAA' : '#555555',
   },
   divider: {
-    backgroundColor: isDarkMode ? '#333333' : '#E0E0E0',
+    backgroundColor: isDarkMode ? '#444444' : '#000000',
   },
   badge: {
-    backgroundColor: isDarkMode ? '#333333' : '#000000',
-    borderColor: isDarkMode ? '#FFFFFF' : '#000000',
+    backgroundColor: isDarkMode ? '#333333' : '#E0E0E0',
   },
   badgeText: {
-    color: '#FFFFFF',
+    color: isDarkMode ? '#FFFFFF' : '#000000',
   },
   iconBg: {
-    backgroundColor: isDarkMode ? '#FFFFFF' : '#000000',
+    backgroundColor: isDarkMode ? '#333333' : '#E0E0E0',
   },
   plusIcon: {
-    color: isDarkMode ? '#000000' : '#FFFFFF',
+    color: isDarkMode ? '#FFFFFF' : '#000000',
   },
 });
 
 export const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 8,
+    marginVertical: 16,
     marginHorizontal: 16,
-    marginVertical: 10,
-    paddingVertical: 18,
+    borderRadius: 0,
+    paddingVertical: 20,
     paddingHorizontal: 20,
+    backgroundColor: 'white',
+    overflow: 'visible',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     borderWidth: 1,
-    borderLeftWidth: 6,
-    borderLeftColor: '#000000',
+    borderColor: '#000000',
+    transform: [{ translateY: -1 }],
+    ...Platform.select({
+      ios: {
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   contentSection: {
     flex: 1,
-    marginRight: 16,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '800',
-    marginBottom: 6,
-    letterSpacing: -0.3,
-    textTransform: 'uppercase',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    lineHeight: 18,
-    marginBottom: 12,
-    letterSpacing: -0.1,
+    fontSize: 14,
+    marginBottom: 16,
   },
-  rightSection: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+  divider: {
+    height: 1,
+    width: '100%',
+    marginBottom: 16,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
   },
   badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    marginRight: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 0,
+    marginRight: 12,
     borderWidth: 1,
+    borderColor: '#000000',
   },
   badgeText: {
-    fontSize: 12,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    fontSize: 14,
+    fontWeight: '600',
   },
   infoText: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 14,
   },
-  divider: {
-    height: 2,
-    marginVertical: 10,
-    width: '100%',
+  rightSection: {
+    marginLeft: 16,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#000000',
   },
 });

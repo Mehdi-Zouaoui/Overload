@@ -1,187 +1,186 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 export const createDynamicStyles = (isDarkMode: boolean) => ({
-  container: {
-    backgroundColor: isDarkMode ? '#1A1A1A' : '#FFFFFF',
-    borderColor: isDarkMode ? '#2A2A2A' : '#F5F5F5',
-    shadowColor: isDarkMode ? '#000000' : 'rgba(0, 0, 0, 0.08)',
+  card: {
+    backgroundColor: isDarkMode ? '#1E1E1E' : '#FFFFFF',
+    borderColor: isDarkMode ? '#333333' : '#000000',
+    shadowColor: '#000000',
   },
-  favoriteContainer: {
-    borderLeftColor: isDarkMode ? '#FFFFFF' : '#000000',
-  },
-  favoriteIndicator: {
-    backgroundColor: isDarkMode ? '#FFFFFF' : '#000000',
-  },
-  iconContainer: {
-    backgroundColor: isDarkMode ? '#252525' : '#FAFAFA',
-    borderColor: isDarkMode ? '#333333' : '#F5F5F5',
-  },
-  iconInnerShadow: {
-    borderColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)',
-  },
-  iconHighlight: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  title: {
+  text: {
     color: isDarkMode ? '#FFFFFF' : '#000000',
   },
-  week: {
-    color: isDarkMode ? '#AAAAAA' : '#6B7280',
+  subtext: {
+    color: isDarkMode ? '#AAAAAA' : '#555555',
   },
-  exerciseCount: {
-    color: isDarkMode ? '#1A1A1A' : '#FFFFFF',
+  divider: {
+    backgroundColor: isDarkMode ? '#333333' : '#000000',
+    borderWidth: 0.5,
+    marginHorizontal: 8,
+    marginBottom: 12,
   },
-  exerciseCountContainer: {
-    backgroundColor: isDarkMode ? '#FFFFFF' : '#000000',
+  badge: {
+    backgroundColor: isDarkMode ? '#333333' : '#E0E0E0',
+    borderColor: isDarkMode ? '#444444' : '#000000',
   },
-  completedBadge: {
-    backgroundColor: isDarkMode ? '#FFFFFF' : '#000000',
-  },
-  completedText: {
-    color: isDarkMode ? '#1A1A1A' : '#FFFFFF',
-  },
-  menuIcon: {
-    color: isDarkMode ? '#AAAAAA' : '#6B7280',
-  },
-  arrowIcon: {
+  badgeText: {
     color: isDarkMode ? '#FFFFFF' : '#000000',
   },
-  pinIcon: {
-    color: isDarkMode ? '#AAAAAA' : '#6B7280',
+  iconColor: isDarkMode ? '#FFFFFF' : '#000000',
+  iconButtonColor: isDarkMode ? '#000000' : '#FFFFFF',
+  progressBar: {
+    backgroundColor: isDarkMode ? '#333333' : '#E0E0E0',
   },
-  pinIconActive: {
-    color: isDarkMode ? '#FFFFFF' : '#000000',
+  progressBarFilled: {
+    backgroundColor: isDarkMode ? '#FFFFFF' : '#000000',
+  },
+  cardShadow: {
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: isDarkMode ? 0.15 : 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
 });
 
 export const styles = StyleSheet.create({
   container: {
-    marginVertical: 8,
-    marginHorizontal: 16,
-    borderRadius: 8,
+    marginBottom: 12,
+    width: '100%',
+  },
+  card: {
+    borderWidth: 1,
+    borderRadius: 0,
     padding: 16,
-    borderWidth: 1,
-    borderLeftWidth: 4,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
+    ...Platform.select({
+      ios: {
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+    transform: [{ translateY: -1 }],
   },
-  favoriteContainer: {
-    borderLeftWidth: 4,
-  },
-  favoriteIndicator: {
-    position: 'absolute',
-    top: 16,
-    left: 0,
-    width: 4,
-    height: 40,
-  },
-  contentContainer: {
+  headerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
   },
-  leftSection: {
+  titleContainer: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    marginRight: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-    borderWidth: 1,
-  },
-  iconInnerShadow: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 3,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 1,
-    elevation: 1,
-  },
-  iconHighlight: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  textContainer: {
-    flex: 1,
-    paddingVertical: 2,
+    marginRight: 8,
   },
   title: {
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-    marginBottom: 5,
+    fontSize: 26,
+    fontWeight: '900',
+    lineHeight: 26,
+  },
+  subtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    letterSpacing: 0.2,
     textTransform: 'uppercase',
   },
-  week: {
-    fontSize: 13,
-    marginBottom: 8,
-    fontWeight: '400',
+  badgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 0,
+    borderWidth: 1,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+    textTransform: 'uppercase',
+  },
+  divider: {
+    height: 1,
+    width: '100%',
+    marginBottom: 12,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statText: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  progressContainer: {
+    marginBottom: 4,
+  },
+  progressBarContainer: {
+    height: 3,
+    width: '100%',
+    borderRadius: 0,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    borderRadius: 0,
+  },
+  progressText: {
+    fontSize: 10,
+    fontWeight: '500',
+    marginTop: 4,
+    textAlign: 'right',
+    textTransform: 'uppercase',
     letterSpacing: 0.1,
-    opacity: 0.9,
   },
-  exerciseInfoContainer: {
+  footerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-  },
-  exerciseCount: {
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.2,
-  },
-  rightSection: {
-    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  completedBadge: {
-    marginRight: 12,
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+  dateText: {
+    fontSize: 11,
+    fontWeight: '500',
+    letterSpacing: 0.1,
   },
-  completedText: {
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 0,
+    borderWidth: 1,
+    borderColor: '#000000',
+  },
+  detailsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: 'black',
+    borderRadius: 0,
+    borderWidth: 1,
+    borderColor: '#000000',
+  },
+  actionButtonText: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginLeft: 4,
     letterSpacing: 0.2,
+    textTransform: 'uppercase',
   },
-  pinButton: {
-    padding: 8,
-    marginRight: 0,
-  },
-  menuButton: {
-    padding: 8,
-    marginRight: -6,
+  detailsButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: 'white',
+    marginLeft: 4,
+    letterSpacing: 0.2,
   },
 });

@@ -356,13 +356,6 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({ route, navigation 
                   color={dynamicStyles.saveButton.color(isAllExercisesDone)}
                   strokeWidth={2}
                 />
-                <Text
-                  style={[
-                    styles.saveButtonText,
-                    { color: dynamicStyles.saveButton.color(isAllExercisesDone) },
-                  ]}>
-                  {i18n.t('detailsScreen.saveWorkout')}
-                </Text>
               </>
             )}
           </TouchableOpacity>

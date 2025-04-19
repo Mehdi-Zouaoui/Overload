@@ -4,12 +4,12 @@ import {
   Settings,
   LogOut,
   Shield,
-  HelpCircle,
   ChevronRight,
   Activity,
   Calendar,
   Edit2,
 } from 'lucide-react-native';
+import { useEffect } from 'react';
 import {
   View,
   Text,
@@ -31,9 +31,24 @@ export default function ProfileScreen() {
   const navigation = useNavigation();
   const { session } = useSession();
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
-  const { profile, loading: profileLoading } = useProfileStore();
+  const { profile, loading: profileLoading, fetchProfile } = useProfileStore();
 
   const { styles, dynamicStyles } = createStyles(isDarkMode);
+
+  // Add useEffect to refetch profile data when screen is focused
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // Refetch profile when screen comes into focus
+      fetchProfile();
+    });
+
+    // Initial fetch if profile is null
+    if (!profile) {
+      fetchProfile();
+    }
+
+    return unsubscribe;
+  }, [navigation, fetchProfile, profile]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -139,7 +154,7 @@ export default function ProfileScreen() {
           <View style={[styles.statCard, dynamicStyles.card]}>
             <View style={styles.statHeader}>
               <Activity size={16} color={dynamicStyles.userName.color} />
-              <Text style={[styles.statValue, dynamicStyles.userName]}>
+              <Text style={[styles.statValue, dynamicStyles.userName, { marginLeft: 8 }]}>
                 {userStats.workoutsCompleted}
               </Text>
             </View>
@@ -156,7 +171,9 @@ export default function ProfileScreen() {
           <View style={[styles.statCard, dynamicStyles.card]}>
             <View style={styles.statHeader}>
               <Calendar size={16} color={dynamicStyles.userName.color} />
-              <Text style={[styles.statValue, dynamicStyles.userName]}>{userStats.daysActive}</Text>
+              <Text style={[styles.statValue, dynamicStyles.userName, { marginLeft: 8 }]}>
+                {userStats.daysActive}
+              </Text>
             </View>
             <View style={styles.statContent}>
               <Text style={[styles.statLabel, dynamicStyles.userEmail]}>
@@ -212,29 +229,6 @@ export default function ProfileScreen() {
                   </View>
                   <Text style={[styles.menuItemText, dynamicStyles.menuItemText]}>
                     {i18n.t('profileScreen.appSettings')}
-                  </Text>
-                </View>
-                <ChevronRight size={14} color={dynamicStyles.chevronColor.color} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
-              {i18n.t('profileScreen.support')}
-            </Text>
-
-            <View style={[styles.card, dynamicStyles.card]}>
-              <TouchableOpacity
-                style={styles.menuItem}
-                activeOpacity={0.6}
-                onPress={() => navigation.navigate('HelpSupport' as never)}>
-                <View style={styles.menuItemLeft}>
-                  <View style={[styles.iconContainer, dynamicStyles.iconBackground]}>
-                    <HelpCircle size={16} color={dynamicStyles.iconColor.color} />
-                  </View>
-                  <Text style={[styles.menuItemText, dynamicStyles.menuItemText]}>
-                    {i18n.t('profileScreen.helpSupport')}
                   </Text>
                 </View>
                 <ChevronRight size={14} color={dynamicStyles.chevronColor.color} />

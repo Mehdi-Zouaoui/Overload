@@ -55,69 +55,59 @@ export const ExerciceCard = ({
     }
   };
 
-  // Dynamic styles based on theme - updated to match the statCard in DetailsScreen
+  // Dynamic styles based on theme - updated to match our minimalist aesthetic
   const dynamicStyles = {
     cardBackground: {
-      backgroundColor: isDarkMode ? '#1E1E1E' : 'rgba(0, 0, 0, 0.04)',
-      borderColor: isDarkMode ? '#333333' : 'rgba(0, 0, 0, 0.05)',
+      backgroundColor: isDarkMode ? '#1E1E1E' : '#FFFFFF',
+      borderColor: isDarkMode ? '#333333' : '#000000',
       borderWidth: 1,
     },
     titleText: {
       color: isDarkMode ? '#FFFFFF' : '#000000',
     },
     weightText: {
-      color: isDarkMode ? '#BBBBBB' : '#444444',
+      color: isDarkMode ? '#AAAAAA' : '#555555',
     },
     setsBadge: {
-      backgroundColor: isDarkMode ? '#333333' : '#EEEEEE',
+      backgroundColor: isDarkMode ? '#333333' : '#E0E0E0',
+      borderWidth: 1,
+      borderColor: isDarkMode ? '#444444' : '#000000',
     },
     setsText: {
       color: isDarkMode ? '#FFFFFF' : '#000000',
     },
     repsText: {
-      color: isDarkMode ? '#BBBBBB' : '#444444',
+      color: isDarkMode ? '#AAAAAA' : '#555555',
     },
     cardShadow: {
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
+      shadowOpacity: 0.15,
+      shadowRadius: 6,
+      elevation: 4,
     },
     divider: {
-      backgroundColor: isDarkMode ? '#333333' : 'rgba(0, 0, 0, 0.05)',
+      backgroundColor: isDarkMode ? '#333333' : '#000000',
     },
     completedBadge: {
       backgroundColor: isDone
         ? isDarkMode
-          ? '#134e4a'
-          : '#d1fae5' // Darker green in dark mode, light green in light mode
+          ? '#333333'
+          : '#000000'
         : isDarkMode
-          ? '#292524'
-          : '#f5f5f4', // Darker gray in dark mode, light gray in light mode
-      borderRadius: 20,
+          ? '#1E1E1E'
+          : '#E0E0E0',
+      borderRadius: 0,
       paddingHorizontal: 8,
       paddingVertical: 4,
       flexDirection: 'row' as const,
       alignItems: 'center' as const,
       marginLeft: 8,
       borderWidth: 1,
-      borderColor: isDone
-        ? isDarkMode
-          ? '#065f46'
-          : '#10b981' // Border for done state
-        : isDarkMode
-          ? '#44403c'
-          : '#d6d3d1', // Border for todo state
+      borderColor: isDarkMode ? '#444444' : '#000000',
     },
     completedText: {
-      color: isDone
-        ? isDarkMode
-          ? '#a7f3d0'
-          : '#047857' // Text for done state
-        : isDarkMode
-          ? '#d6d3d1'
-          : '#57534e', // Text for todo state
+      color: isDone ? (isDarkMode ? '#FFFFFF' : '#FFFFFF') : isDarkMode ? '#AAAAAA' : '#555555',
       fontSize: 12,
       fontWeight: '600' as const,
       marginLeft: 3,
@@ -143,7 +133,7 @@ export const ExerciceCard = ({
                 name={isDone ? 'checkmark-circle' : 'barbell-outline'}
                 size={14}
                 color={
-                  isDone ? (isDarkMode ? '#a7f3d0' : '#047857') : isDarkMode ? '#d4d4d4' : '#525252'
+                  isDone ? (isDarkMode ? '#FFFFFF' : '#FFFFFF') : isDarkMode ? '#AAAAAA' : '#555555'
                 }
               />
               <Text style={[dynamicStyles.completedText]}>{isDone ? 'Done' : 'To do'}</Text>
@@ -174,10 +164,11 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    borderRadius: 10,
+    borderRadius: 0,
     padding: 16,
     flexDirection: 'column',
     justifyContent: 'space-between',
+    overflow: 'visible',
   },
   headerSection: {
     marginBottom: 12,
@@ -203,7 +194,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   setsBadge: {
-    borderRadius: 4,
+    borderRadius: 0,
     paddingHorizontal: 8,
     paddingVertical: 3,
     marginRight: 10,

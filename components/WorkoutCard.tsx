@@ -1,12 +1,11 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { Dumbbell } from 'lucide-react-native';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 
 import i18n from '../i18n';
 import { useThemeStore } from '../stores/themeStore';
 import { useWorkoutStore, Session } from '../stores/workoutStore';
-import { styles, createDynamicStyles } from '../styles/WorkoutCardStyles';
+import { createDynamicStyles, styles as baseStyles } from '../styles/WorkoutCardStyles';
 
 interface WorkoutCardProps {
   title: string;
@@ -14,7 +13,6 @@ interface WorkoutCardProps {
   sessions: Session[];
   completed?: boolean;
   onPress?: () => void;
-  className?: string;
   week: string;
   isFavorite?: boolean;
 }
@@ -38,9 +36,28 @@ export const WorkoutCard = ({
   const toggleFavorite = useWorkoutStore((state) => state.toggleFavorite);
 
   const dynamicStyles = createDynamicStyles(isDarkMode);
+  const combinedStyles = { ...baseStyles, ...dynamicStyles };
+
+  // Ensure sessions is always an array
+  const sessionsArray = Array.isArray(sessions) ? sessions : [];
 
   // Handle the case where sessions is an array of exercise arrays
-  const exercises = Array.isArray(sessions?.[0]) ? sessions[0] : sessions?.[0]?.exercises || [];
+  const exercises =
+    sessionsArray.length > 0
+      ? Array.isArray(sessionsArray[0])
+        ? sessionsArray[0]
+        : sessionsArray[0]?.exercises || []
+      : [];
+
+  // For debugging
+  console.log('Exercises:', JSON.stringify(exercises, null, 2));
+
+  // Calculate total sets across all exercises correctly based on the data model
+  const totalSets = exercises.reduce((total, exercise) => {
+    if (!exercise) return total;
+    // sets is a number in your data model, not an array
+    return total + (typeof exercise.sets === 'number' ? exercise.sets : 0);
+  }, 0);
 
   const handleMenuPress = (event: any) => {
     event.stopPropagation(); // Prevent triggering the card's onPress
@@ -75,79 +92,91 @@ export const WorkoutCard = ({
     ]);
   };
 
-  // Handle direct favorite toggle
-  const handleFavoriteToggle = (event: any) => {
-    event.stopPropagation(); // Prevent triggering the card's onPress
-    toggleFavorite(id);
-  };
-
   return (
     <TouchableOpacity
       onPress={() => {
         navigation.navigate('Details', { title, id });
         onPress?.();
       }}
-      activeOpacity={0.9}
+      activeOpacity={0.7}
       style={[
-        styles.container,
-        dynamicStyles.container,
-        isFavorite && styles.favoriteContainer,
-        isFavorite && dynamicStyles.favoriteContainer,
+        combinedStyles.card,
+        baseStyles.card,
+        baseStyles.container,
+        combinedStyles.cardShadow,
       ]}>
-      {isFavorite && <View style={[styles.favoriteIndicator, dynamicStyles.favoriteIndicator]} />}
-
-      <View style={styles.contentContainer}>
-        <View style={styles.leftSection}>
-          <View style={[styles.iconContainer, dynamicStyles.iconContainer]}>
-            <Dumbbell size={22} color={isDarkMode ? '#FFFFFF' : '#000000'} strokeWidth={2} />
-          </View>
-
-          <View style={styles.textContainer}>
-            <Text style={[styles.title, dynamicStyles.title]} numberOfLines={1}>
-              {title}
-            </Text>
-            <Text style={[styles.week, dynamicStyles.week]}>{week}</Text>
-            {exercises.length > 0 && (
-              <View style={[styles.exerciseInfoContainer, dynamicStyles.exerciseCountContainer]}>
-                <Text style={[styles.exerciseCount, dynamicStyles.exerciseCount]}>
-                  {exercises.length}{' '}
-                  {i18n.t(
-                    exercises.length !== 1 ? 'workoutCard.exercises' : 'workoutCard.exercise'
-                  )}
+      <View style={baseStyles.headerRow}>
+        <Text style={[combinedStyles.text, baseStyles.title, { marginRight: 12, fontSize: 24 }]}>
+          {sessionsArray.length}
+        </Text>
+        <View style={baseStyles.titleContainer}>
+          <Text style={[combinedStyles.text, baseStyles.title]}>
+            {title.toUpperCase() || 'UNTITLED WORKOUT'}
+          </Text>
+          {week && (
+            <View style={baseStyles.badgeContainer}>
+              <View style={[combinedStyles.badge, baseStyles.badge]}>
+                <Text style={[combinedStyles.badgeText, baseStyles.badgeText]}>
+                  {i18n.t('common.sessions')} {sessionsArray.length}
                 </Text>
               </View>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.rightSection}>
-          {completed && (
-            <View style={[styles.completedBadge, dynamicStyles.completedBadge]}>
-              <Text style={[styles.completedText, dynamicStyles.completedText]}>
-                {i18n.t('workoutCard.completed')}
-              </Text>
             </View>
           )}
+        </View>
 
-          <TouchableOpacity
-            onPress={handleFavoriteToggle}
-            style={styles.pinButton}
-            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
-            <MaterialIcons
-              name={isFavorite ? 'star' : 'star-outline'}
-              size={20}
-              color={isFavorite ? dynamicStyles.pinIconActive.color : dynamicStyles.pinIcon.color}
-              style={isFavorite ? {} : { display: 'none' }}
-            />
-          </TouchableOpacity>
-
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {isFavorite && <MaterialIcons name="star" size={24} color={combinedStyles.iconColor} />}
           <TouchableOpacity
             onPress={handleMenuPress}
-            style={styles.menuButton}
-            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
-            <MaterialIcons name="more-vert" size={22} color={dynamicStyles.menuIcon.color} />
+            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+            style={{ marginLeft: 8 }}>
+            <MaterialIcons name="more-vert" size={24} color={combinedStyles.iconColor} />
           </TouchableOpacity>
         </View>
+      </View>
+
+      <View style={combinedStyles.divider} />
+
+      <View style={baseStyles.statsRow}>
+        <View style={baseStyles.statItem}>
+          <MaterialIcons name="fitness-center" size={18} color={combinedStyles.iconColor} />
+          <Text style={[combinedStyles.text, baseStyles.statText, { marginLeft: 8 }]}>
+            {exercises.length} exercises
+          </Text>
+        </View>
+        <View style={baseStyles.statItem}>
+          <MaterialIcons name="repeat" size={18} color={combinedStyles.iconColor} />
+          <Text style={[combinedStyles.text, baseStyles.statText, { marginLeft: 8 }]}>
+            {totalSets} sets
+          </Text>
+        </View>
+      </View>
+
+      <View style={baseStyles.footerRow}>
+        <View style={[baseStyles.statItem]} />
+        <TouchableOpacity
+          style={[
+            baseStyles.detailsButton,
+            {
+              borderColor: combinedStyles.iconButtonColor,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+            },
+          ]}
+          onPress={() => {
+            navigation.navigate('Details', { title, id });
+            onPress?.();
+          }}>
+          <Text style={[combinedStyles.text, baseStyles.detailsButtonText]}>
+            {i18n.t('workoutCard.details') || 'DÉTAILS'}
+          </Text>
+          <MaterialIcons
+            name="chevron-right"
+            size={16}
+            color={combinedStyles.iconButtonColor}
+            style={{ marginLeft: 4 }}
+          />
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );

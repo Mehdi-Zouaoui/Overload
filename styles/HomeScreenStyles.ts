@@ -128,7 +128,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 80,
+    paddingTop: 50,
     paddingHorizontal: 30,
   },
   emptyText: {
@@ -153,6 +153,7 @@ export const styles = StyleSheet.create({
   workoutsContainer: {
     flex: 1,
     gap: 14,
+    paddingTop: 10,
   },
   workoutCardWrapper: {
     marginBottom: 14,
@@ -241,7 +242,7 @@ export const styles = StyleSheet.create({
   },
   scrollIndicatorContainer: {
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 0,
   },
   scrollHintText: {
     fontSize: 12,
@@ -251,7 +252,7 @@ export const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   arrowContainer: {
-    marginBottom: 8,
+    marginBottom: 4,
   },
   badgeContainer: {
     paddingHorizontal: 10,
